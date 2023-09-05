@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "994555263844",
+    "project_id": "lifecycle-25b00",
+    "storage_bucket": "lifecycle-25b00.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:994555263844:android:dd4a952fa9cfee1da01871",
+        "android_client_info": {
+          "package_name": "com.three.lifecycle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "994555263844-qfk61r8dm6u6p7s4fvlqq3eckjk86rhu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhh15tcpXhYDxBmYmz6nT93G1YvfjgSlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "994555263844-qfk61r8dm6u6p7s4fvlqq3eckjk86rhu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
