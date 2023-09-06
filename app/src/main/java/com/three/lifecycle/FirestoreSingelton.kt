@@ -4,18 +4,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class FirestoreSingleton {
 
-    private var instance: FirebaseFirestore? = null
+    private var firestore: FirebaseFirestore? = null
 
-    fun getInstance(context: Context): FirebaseFirestore {
-
-        if (instance == null) {
-            synchronized(FirestoreSingleton::class.java) {
-                if (instance == null) {
-                    instance = FirebaseFirestore.getInstance()
-                }
-            }
+    fun getInstance(appContext: Context): FirebaseFirestore {
+        if (firestore == null) {
+            firestore = FirebaseFirestore.getInstance()
         }
-        return instance!!
+        return firestore!!
     }
 }
 

@@ -41,33 +41,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun validateLogin(email: String, password: String, callback: (Boolean) -> Unit) {
-        db.collection("users")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener { result ->
+        db.collection("users").whereEqualTo("email", email).get().addOnSuccessListener { result ->
 
                 for (document in result) {
 
                     val passwordDatabase = document.getString("password")
                     if (password == passwordDatabase) {
 
-                        db.collection("users")
-                            .document(document.id)
-                            .update("isLoggedIn", true)
+                        db.collection("users").document(document.id).update("isLoggedIn", true)
                             .addOnSuccessListener {
                                 callback(true)
-                            }
-                            .addOnFailureListener { exception ->
+                            }.addOnFailureListener { exception ->
                                 Log.w("validateLogin", "Error updating document.", exception)
                                 callback(false)
                             }
                         break
                     }
                 }
-            }
-            .addOnFailureListener { exception ->
+            }.addOnFailureListener { exception ->
                 Log.w("validateLogin", "Error querying database.", exception)
                 callback(false)
             }
