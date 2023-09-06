@@ -40,12 +40,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val registerButton = findViewById<Button>(R.id.registerButton)
+        registerButton.setOnClickListener {
+
+            val registerIntent = Intent(this, RegisterActivity::class.java)
+            startActivity(registerIntent)
+        }
     }
     private fun validateLogin(email: String, password: String, callback: (Boolean) -> Unit) {
         db.collection("users").whereEqualTo("email", email).get().addOnSuccessListener { result ->
 
                 for (document in result) {
-
                     val passwordDatabase = document.getString("password")
                     if (password == passwordDatabase) {
 

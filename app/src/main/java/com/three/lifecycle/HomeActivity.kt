@@ -32,11 +32,11 @@ class HomeActivity : AppCompatActivity() {
             val fragmentManager = supportFragmentManager
             val fragmentTransaction = fragmentManager.beginTransaction()
 
-            val myFragment = ProfileFragment()
-            myFragment.arguments = bundle
-            myFragment.setFirestoreReference(db)
+            val profileFragment = ProfileFragment()
+            profileFragment.arguments = bundle
+            profileFragment.setFirestoreReference(db)
 
-            fragmentTransaction.add(R.id.fragment_container, myFragment)
+            fragmentTransaction.add(R.id.fragment_container, profileFragment)
             fragmentTransaction.commit()
         }
 
@@ -47,6 +47,7 @@ class HomeActivity : AppCompatActivity() {
             val fragmentTransaction = fragmentManager.beginTransaction()
 
             val settingsFragment = SettingsFragment()
+            settingsFragment.setFirestoreReference(db)
             fragmentTransaction.replace(R.id.fragment_container, settingsFragment)
 
             fragmentTransaction.addToBackStack(null)
@@ -62,11 +63,12 @@ class HomeActivity : AppCompatActivity() {
             val fragmentManager = supportFragmentManager
             val fragmentTransaction = fragmentManager.beginTransaction()
 
-            val myFragment = ProfileFragment()
-            myFragment.arguments = bundle
-            myFragment.setFirestoreReference(db)
+            val profileFragment = ProfileFragment()
+            profileFragment.setFirestoreReference(db)
+            profileFragment.arguments = bundle
+            profileFragment.setFirestoreReference(db)
 
-            fragmentTransaction.replace(R.id.fragment_container, myFragment)
+            fragmentTransaction.replace(R.id.fragment_container, profileFragment)
             fragmentTransaction.commit()
         }
 
@@ -78,7 +80,6 @@ class HomeActivity : AppCompatActivity() {
                 finish()
             }
         }
-
     }
 
     private fun logoutUser(email: String) {
@@ -92,7 +93,6 @@ class HomeActivity : AppCompatActivity() {
                         }.addOnFailureListener { exception ->
                             Log.w("validateLogin", "Error updating document.", exception)
                         }
-
                     break
                 }
             }.addOnFailureListener { exception ->

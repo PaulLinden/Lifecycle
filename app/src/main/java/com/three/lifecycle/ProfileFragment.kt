@@ -14,6 +14,7 @@ class ProfileFragment : Fragment() {
 
     private lateinit var rootView: View
     private var firestore: FirebaseFirestore? = null
+
     private var ageValue: String = ""
     private var titleValue: String = ""
 
@@ -31,7 +32,7 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Initialization and data retrieval should be performed here
+
         val email = arguments?.getString("email")
         if (email != null) {
             getUserSpec(email)
