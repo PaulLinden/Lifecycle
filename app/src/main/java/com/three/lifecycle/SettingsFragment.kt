@@ -1,5 +1,6 @@
 package com.three.lifecycle
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,10 +16,6 @@ class SettingsFragment : Fragment() {
     private lateinit var rootView: View
     private var firestore: FirebaseFirestore? = null
 
-    private var newEmail: String = ""
-    private var newPassword: String = ""
-    private var newTitle: String = ""
-    private var newAdress: String = ""
     private var newAge: String = ""
 
     fun setFirestoreReference(db: FirebaseFirestore) {
@@ -36,6 +33,14 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+
+        rootView.findViewById<EditText>(R.id.inputNewEmailAdress).setText(sharedPreferences.getString("email", ""))
+        rootView.findViewById<EditText>(R.id.inputNewPassword).setText(sharedPreferences.getString("password", ""))
+        rootView.findViewById<EditText>(R.id.inputNewTitle).setText(sharedPreferences.getString("title", ""))
+        rootView.findViewById<EditText>(R.id.inputNewAdress).setText(sharedPreferences.getString("address", ""))
+        rootView.findViewById<EditText>(R.id.inputNewAge).setText(sharedPreferences.getString("age", ""))
+
         val submitButton = rootView.findViewById<Button>(R.id.submitButton)
         submitButton.setOnClickListener {
 
@@ -45,34 +50,46 @@ class SettingsFragment : Fragment() {
             val inputNewAdress = rootView.findViewById<EditText>(R.id.inputNewAdress)
             val inputNewAge = rootView.findViewById<EditText>(R.id.inputNewAge)
 
-            newEmail = inputNewEmailAdress.text.toString()
-            newPassword = inputNewPassword.text.toString()
-            newTitle = inputNewTitle.text.toString()
-            newAdress = inputNewAdress.text.toString()
-            newAge = inputNewAge.text.toString()
+            val updateUser = User(
+                email = inputNewEmailAdress.text.toString(),
+                password = inputNewPassword.text.toString(),
+                title = inputNewTitle.text.toString(),
+                address = inputNewAdress.text.toString(),
+                age = inputNewAge.text.toString().toIntOrNull() ?: 0
+            )
 
-            editCredentials()
+            val currentUser = arguments?.getString("email")
+            if (currentUser != null) {
+                editCredentials(updateUser, currentUser)
+            }
+
+            val editor = sharedPreferences.edit()
+
+            editor.putString("email", inputNewEmailAdress.text.toString())
+            editor.putString("password", inputNewPassword.text.toString())
+            editor.putString("title", inputNewTitle.text.toString())
+            editor.putString("address", inputNewAdress.text.toString())
+            editor.putString("age", inputNewAge.text.toString())
+
+            editor.apply()
         }
     }
 
-    fun editCredentials(){
-        val email: String = "Ada@mail.com"
-
+    fun editCredentials(user: User, currentUser: String) {
         firestore?.collection("users")
-            ?.whereEqualTo("email", email)?.get()?.addOnSuccessListener { result ->
-
+            ?.whereEqualTo("email", currentUser)?.get()?.addOnSuccessListener { result ->
                 for (document in result) {
                     val docRef = firestore?.collection("users")?.document(document.id)
 
-                    val updates = hashMapOf(
-                        "adress" to newAdress,
-                        "age" to newAge.toInt(),
-                        "email" to "Ada@mail.com",
-                        "password" to "1234",
-                        "title" to newTitle
+                    val updates = mapOf(
+                        "email" to user.email,
+                        "password" to user.password,
+                        "title" to user.title,
+                        "address" to user.address,
+                        "age" to user.age
                     )
 
-                    docRef?.update(updates as Map<String, Any>)
+                    docRef?.update(updates)
                         ?.addOnSuccessListener {
                             Log.d("validateLogin", "Succeeded updating document.")
                         }?.addOnFailureListener { exception ->
@@ -86,4 +103,5 @@ class SettingsFragment : Fragment() {
 
     }
 }
+
 
