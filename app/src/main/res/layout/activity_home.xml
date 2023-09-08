@@ -9,17 +9,18 @@
     tools:context=".HomeActivity">
 
     <FrameLayout
-        android:layout_width="424dp"
-        android:layout_height="600dp"
         android:id="@+id/fragment_container"
+        android:layout_width="401dp"
+        android:layout_height="637dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="409dp"
+        android:layout_width="match_parent"
         android:layout_height="44dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -27,7 +28,8 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="1.0"
+        >
 
         <Button
             android:id="@+id/homeButton"
@@ -35,7 +37,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/home" />
+            android:layout_marginEnd="1dp"
+            android:text="@string/home"
+            android:textColor="@color/white"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            />
 
         <Button
             android:id="@+id/logoutButton"
@@ -43,7 +49,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/logout" />
+            android:text="@string/logout"
+            android:textColor="@color/white"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            />
 
         <Button
             android:id="@+id/settingsButton"
@@ -51,7 +60,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/settings" />
+            android:layout_marginStart="1dp"
+            android:text="@string/settings"
+            android:textColor="@color/white"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            />
     </LinearLayout>
 
 

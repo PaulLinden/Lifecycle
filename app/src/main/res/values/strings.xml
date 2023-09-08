@@ -10,11 +10,14 @@
     <string name="age">age</string>
     <string name="address">address</string>
     <string name="title">title</string>
-    <string name="age_placeholder">Age: %s</string>
-    <string name="title_placeholder">Title: %s</string>
     <string name="example_email_com">example@email.com</string>
     <string name="register">Register</string>
     <string name="cancel">Cancel</string>
     <string name="keep_me_logged_in">Keep me logged in</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
+    <string name="driving_license">Driving license</string>
+    <string name="submit">Submit</string>
+
 
 </resources>

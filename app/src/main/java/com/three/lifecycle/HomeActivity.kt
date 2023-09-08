@@ -4,123 +4,132 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
+import androidx.fragment.app.Fragment
+import com.google.firebase.firestore.FieldPath
 
 class HomeActivity : AppCompatActivity() {
 
+    private lateinit var userId: String
+    private val fragmentManager = supportFragmentManager
     private val firestoreSingleton = FirestoreSingleton()
+    private var currentFragmentTag: String? = null
     private val db = firestoreSingleton.getInstance(this)
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("userId", userId)
+        currentFragmentTag?.let { outState.putString("currentFragmentTag", it) }
+        super.onSaveInstanceState(outState)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val email = intent.getStringExtra("email")
-
-        if (email != null) {
-            isUserLoggedIn(email) { isLoggedIn ->
-                if (!isLoggedIn) {
-                    finish()
-                }
-            }
-        }
+        val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+        userId = sharedPreferences.getString("userId", "").toString()
 
         if (savedInstanceState == null) {
-
-            val bundle = Bundle()
-            bundle.putString("email", email)
-
-            val fragmentManager = supportFragmentManager
-            val fragmentTransaction = fragmentManager.beginTransaction()
-
-            val profileFragment = ProfileFragment()
-            profileFragment.arguments = bundle
-            profileFragment.setFirestoreReference(db)
-
-            fragmentTransaction.add(R.id.fragment_container, profileFragment)
-            fragmentTransaction.commit()
+            setupProfileFragment()
         }
 
+        setupListeners()
+    }
+
+    private fun setupProfileFragment() {
+        val profileFragment = ProfileFragment()
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.addToBackStack(null)
+        profileFragment.setFirestoreReference(db)
+
+        val bundle = Bundle().apply {
+            val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+            userId = sharedPreferences.getString("userId", "").toString()
+            putString("userId", userId)
+        }
+
+        profileFragment.arguments = bundle
+        fragmentTransaction.add(R.id.fragment_container, profileFragment)
+        fragmentTransaction.commit()
+    }
+
+    private fun setupListeners() {
         val settingsButton = findViewById<Button>(R.id.settingsButton)
-        settingsButton.setOnClickListener {
-
-            val fragmentManager = supportFragmentManager
-            val fragmentTransaction = fragmentManager.beginTransaction()
-
-            val settingsFragment = SettingsFragment()
-            settingsFragment.setFirestoreReference(db)
-            fragmentTransaction.replace(R.id.fragment_container, settingsFragment)
-
-            fragmentTransaction.addToBackStack(null)
-            fragmentTransaction.commit()
-        }
-
         val homeButton = findViewById<Button>(R.id.homeButton)
-        homeButton.setOnClickListener {
-
-            val bundle = Bundle()
-            bundle.putString("email", email)
-
-            val fragmentManager = supportFragmentManager
-            val fragmentTransaction = fragmentManager.beginTransaction()
-
-            val profileFragment = ProfileFragment()
-            profileFragment.setFirestoreReference(db)
-            profileFragment.arguments = bundle
-            profileFragment.setFirestoreReference(db)
-
-            fragmentTransaction.replace(R.id.fragment_container, profileFragment)
-            fragmentTransaction.commit()
-        }
-
         val logOutButton = findViewById<Button>(R.id.logoutButton)
-        logOutButton.setOnClickListener {
 
-            if (email != null) {
-                logoutUser(email)
-                finish()
-            }
+        settingsButton.setOnClickListener { navigateToSettings() }
+        homeButton.setOnClickListener { navigateToProfileFragment() }
+        logOutButton.setOnClickListener { logOut() }
+    }
+
+    private fun navigateToSettings() {
+        val settingsFragment = SettingsFragment()
+        settingsFragment.setFirestoreReference(db)
+
+        val bundle = Bundle().apply {
+            putString("userId", userId)
+        }
+
+        settingsFragment.arguments = bundle
+
+        replaceFragment(settingsFragment)
+    }
+
+    private fun navigateToProfileFragment() {
+        val profileFragment = ProfileFragment()
+        profileFragment.setFirestoreReference(db)
+
+        val bundle = Bundle().apply {
+            putString("userId", userId)
+        }
+
+        profileFragment.arguments = bundle
+
+        replaceFragment(profileFragment)
+    }
+
+    private fun replaceFragment(fragment: Fragment) {
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.addToBackStack(null)
+        fragmentTransaction.replace(R.id.fragment_container, fragment)
+        fragmentTransaction.commit()
+    }
+
+    private fun logOut() {
+        if (userId.isNotEmpty()) {
+            logoutUser(userId)
+            finish()
         }
     }
 
-    private fun logoutUser(email: String) {
+    private fun logoutUser(userId: String) {
+        try {
+            val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+            sharedPreferences.edit {
+                remove("email")
+                remove("password")
+                remove("isLoggedIn")
+            }
 
-        val sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE)
-        val userPrefsEditor = sharedPreferences.edit()
-
-        userPrefsEditor.remove("email")
-        userPrefsEditor.remove("password")
-        userPrefsEditor.remove("isLoggedIn")
-
-        userPrefsEditor.apply()
-
-        db.collection("users").whereEqualTo("email", email).get().addOnSuccessListener { result ->
-                for (document in result) {
-
-                    db.collection("users").document(document.id).update("isLoggedIn", false)
-                        .addOnSuccessListener {
-                            Log.w("validateLogin", "Succeeded updating document.")
-                        }.addOnFailureListener { exception ->
-                            Log.w("validateLogin", "Error updating document.", exception)
-                        }
-                    break
+            db.collection("users")
+                .whereEqualTo(FieldPath.documentId(), userId)
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        db.collection("users").document(document.id).update("isLoggedIn", false)
+                            .addOnSuccessListener {
+                                Log.w("validateLogin", "Succeeded updating document.")
+                            }.addOnFailureListener { exception ->
+                                Log.w("validateLogin", "Error updating document.", exception)
+                            }
+                    }
+                }.addOnFailureListener { exception ->
+                    Log.w("validateLogin", "Error querying database.", exception)
                 }
-            }.addOnFailureListener { exception ->
-                Log.w("validateLogin", "Error querying database.", exception)
-            }
-
+        } catch (e: Exception) {
+            Log.e("logoutUser", "Error logging out user", e)
+        }
     }
-
-    private fun isUserLoggedIn(email: String, callback: (Boolean) -> Unit) {
-
-        db.collection("users").whereEqualTo("email", email).whereEqualTo("isLoggedIn", true).get()
-            .addOnSuccessListener { result ->
-                val isLoggedIn = !result.isEmpty
-                Log.d("isUserLoggedIn", "User with email $email is logged in: $isLoggedIn")
-                callback(isLoggedIn)
-            }.addOnFailureListener { exception ->
-                Log.w("isUserLoggedIn", "Error checking login status.", exception)
-                callback(false)
-            }
-    }
-
 }
+
