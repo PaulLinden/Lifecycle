@@ -1,25 +1,22 @@
 package com.three.lifecycle
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.FirebaseFirestore
 
-class SettingsFragment : Fragment() {
+class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var rootView: View
-    private var firestore: FirebaseFirestore? = null
+    private lateinit var userId: String
+    private val firestoreSingleton = FirestoreSingleton()
+    private val db = firestoreSingleton.getInstance(this)
 
     private var saveEmailInput:String = ""
     private var savePasswordInput:String = ""
@@ -27,19 +24,9 @@ class SettingsFragment : Fragment() {
     private var savedGenderId: Int? = null
     private var saveCheckBoxState:Boolean = false
 
-    fun setFirestoreReference(db: FirebaseFirestore) {
-        firestore = db
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        rootView = inflater.inflate(R.layout.fragment_settings, container, false)
-        return rootView
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
 
         if (savedInstanceState != null) {
             savedInstanceState.getString("email_value")
@@ -50,13 +37,14 @@ class SettingsFragment : Fragment() {
             savedInstanceState.getString("age_value")
         }
 
-        val userId = arguments?.getString("userId").toString()
+        val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+        userId = sharedPreferences.getString("userId", "").toString()
 
-        val updateEmail = rootView.findViewById<EditText>(R.id.inputNewEmailAdress)
-        val updatePassword = rootView.findViewById<EditText>(R.id.inputNewPassword)
-        val updateDrivingLicense = rootView.findViewById<CheckBox>(R.id.checkBoxDrivingLicense)
-        val updateGroupGender = rootView.findViewById<RadioGroup>(R.id.gender)
-        val updateAge = rootView.findViewById<EditText>(R.id.inputNewAge)
+        val updateEmail = findViewById<EditText>(R.id.inputNewEmailAdress)
+        val updatePassword = findViewById<EditText>(R.id.inputNewPassword)
+        val updateDrivingLicense = findViewById<CheckBox>(R.id.checkBoxDrivingLicense)
+        val updateGroupGender = findViewById<RadioGroup>(R.id.gender)
+        val updateAge = findViewById<EditText>(R.id.inputNewAge)
 
         val uiList = mutableListOf(updateEmail, updatePassword, updateAge)
         uiList.forEach { ui ->
@@ -83,7 +71,7 @@ class SettingsFragment : Fragment() {
             savedGenderId = checkedId
         }
 
-        val submitButton = rootView.findViewById<Button>(R.id.submitButton)
+        val submitButton = findViewById<Button>(R.id.submitButton)
         submitButton.setOnClickListener {
 
             val updateUser = User(
@@ -100,15 +88,24 @@ class SettingsFragment : Fragment() {
             )
 
             updateUserInDatabase(updateUser, userId)
+
+            val homeActivity = Intent(this, HomeActivity::class.java)
+            startActivity(homeActivity)
+        }
+
+        val cancelButton = findViewById<Button>(R.id.cancel_button_2)
+        cancelButton.setOnClickListener{
+            val homeActivity = Intent(this, HomeActivity::class.java)
+            startActivity(homeActivity)
         }
     }
 
     private fun updateUserInDatabase(user: User, userId: String) {
 
-        firestore?.collection("users")?.whereEqualTo(FieldPath.documentId(), userId)?.get()
-            ?.addOnSuccessListener { result ->
+        db.collection("users").whereEqualTo(FieldPath.documentId(), userId).get()
+            .addOnSuccessListener { result ->
                 for (document in result) {
-                    val docRef = firestore?.collection("users")?.document(document.id)
+                    val docRef = db.collection("users").document(document.id)
 
                     val updates = mapOf(
                         "email" to user.email,
@@ -118,14 +115,14 @@ class SettingsFragment : Fragment() {
                         "age" to user.age
                     )
 
-                    docRef?.update(updates)?.addOnSuccessListener {
+                    docRef.update(updates).addOnSuccessListener {
                         Log.d("validateLogin", "Succeeded updating document.")
-                    }?.addOnFailureListener { exception ->
+                    }.addOnFailureListener { exception ->
                         Log.d("validateLogin", "Error updating document.", exception)
                     }
                     break
                 }
-            }?.addOnFailureListener { exception ->
+            }.addOnFailureListener { exception ->
                 Log.d("validateLogin", "Error querying database.", exception)
             }
     }
@@ -140,15 +137,15 @@ class SettingsFragment : Fragment() {
         outState.putInt("gender_value", savedGenderId ?: -1)
     }
 
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
 
-        if (savedInstanceState != null) {
-            saveEmailInput = savedInstanceState.getString("email_value").toString()
-            savePasswordInput = savedInstanceState.getString("password_value").toString()
-            saveAgeInput = savedInstanceState.getString("age_value").toString()
-            saveCheckBoxState = savedInstanceState.getBoolean("auto_login_value")
-            savedGenderId = savedInstanceState.getInt("gender_value", -1)
-        }
+        saveEmailInput = savedInstanceState.getString("email_value").toString()
+        savePasswordInput = savedInstanceState.getString("password_value").toString()
+        saveAgeInput = savedInstanceState.getString("age_value").toString()
+        saveCheckBoxState = savedInstanceState.getBoolean("auto_login_value")
+        savedGenderId = savedInstanceState.getInt("gender_value", -1)
     }
+
+
 }

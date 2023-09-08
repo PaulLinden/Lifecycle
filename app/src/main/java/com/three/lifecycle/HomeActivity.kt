@@ -1,56 +1,41 @@
 package com.three.lifecycle
 
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
-import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FieldPath
+import kotlin.properties.Delegates
 
 class HomeActivity : AppCompatActivity() {
 
-    private lateinit var userId: String
-    private val fragmentManager = supportFragmentManager
     private val firestoreSingleton = FirestoreSingleton()
-    private var currentFragmentTag: String? = null
     private val db = firestoreSingleton.getInstance(this)
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("userId", userId)
-        currentFragmentTag?.let { outState.putString("currentFragmentTag", it) }
-        super.onSaveInstanceState(outState)
-    }
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var userId: String
+    private var autoLogin by Delegates.notNull<Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
         userId = sharedPreferences.getString("userId", "").toString()
+        autoLogin = sharedPreferences.getBoolean("autoLogin", false)
 
-        if (savedInstanceState == null) {
-            setupProfileFragment()
+
+        if (userId.isNotEmpty()) {
+            getUserSpec(userId)
+        }else{
+            val homeActivity = Intent(this, HomeActivity::class.java)
+            startActivity(homeActivity)
         }
 
         setupListeners()
-    }
-
-    private fun setupProfileFragment() {
-        val profileFragment = ProfileFragment()
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.addToBackStack(null)
-        profileFragment.setFirestoreReference(db)
-
-        val bundle = Bundle().apply {
-            val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
-            userId = sharedPreferences.getString("userId", "").toString()
-            putString("userId", userId)
-        }
-
-        profileFragment.arguments = bundle
-        fragmentTransaction.add(R.id.fragment_container, profileFragment)
-        fragmentTransaction.commit()
     }
 
     private fun setupListeners() {
@@ -59,47 +44,33 @@ class HomeActivity : AppCompatActivity() {
         val logOutButton = findViewById<Button>(R.id.logoutButton)
 
         settingsButton.setOnClickListener { navigateToSettings() }
-        homeButton.setOnClickListener { navigateToProfileFragment() }
+        homeButton.setOnClickListener { navigateToProfile() }
         logOutButton.setOnClickListener { logOut() }
     }
 
     private fun navigateToSettings() {
-        val settingsFragment = SettingsFragment()
-        settingsFragment.setFirestoreReference(db)
-
-        val bundle = Bundle().apply {
-            putString("userId", userId)
-        }
-
-        settingsFragment.arguments = bundle
-
-        replaceFragment(settingsFragment)
+        val settingIntent = Intent(this, SettingsActivity::class.java)
+        startActivity(settingIntent)
     }
 
-    private fun navigateToProfileFragment() {
-        val profileFragment = ProfileFragment()
-        profileFragment.setFirestoreReference(db)
-
-        val bundle = Bundle().apply {
-            putString("userId", userId)
-        }
-
-        profileFragment.arguments = bundle
-
-        replaceFragment(profileFragment)
-    }
-
-    private fun replaceFragment(fragment: Fragment) {
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.addToBackStack(null)
-        fragmentTransaction.replace(R.id.fragment_container, fragment)
-        fragmentTransaction.commit()
+    private fun navigateToProfile() {
+        val homeActivity = Intent(this, HomeActivity::class.java)
+        startActivity(homeActivity)
     }
 
     private fun logOut() {
-        if (userId.isNotEmpty()) {
+        logoutUser(userId)
+        clearUserData()
+        val mainActivity = Intent(this, MainActivity::class.java)
+        startActivity(mainActivity)
+        finish()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!autoLogin) {
             logoutUser(userId)
-            finish()
+            clearUserData()
         }
     }
 
@@ -107,6 +78,7 @@ class HomeActivity : AppCompatActivity() {
         try {
             val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
             sharedPreferences.edit {
+                remove("userId")
                 remove("email")
                 remove("password")
                 remove("isLoggedIn")
@@ -131,5 +103,50 @@ class HomeActivity : AppCompatActivity() {
             Log.e("logoutUser", "Error logging out user", e)
         }
     }
+
+    private fun getUserSpec(userId: String) {
+        if (userId.isNotEmpty()) {
+            val ageTextView = findViewById<TextView>(R.id.profilAgeTextView)
+            val nameTextView = findViewById<TextView>(R.id.profileNameTextView)
+
+            Log.d("Profilemanager", userId)
+
+            db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val ageNumber = document.getLong("age")
+                        val nameString = document.getString("email")
+                        val getIsLoggedIn = document.getBoolean("isLoggedIn")
+
+                        Log.d("Profilemanager", "ageNumber: $ageNumber, nameString: $nameString")
+
+                        val ageValue = ageNumber?.toString() ?: "N/A"
+                        val nameValue = nameString ?: "N/A"
+
+                        nameTextView.text = "Name: $nameValue"
+                        ageTextView.text = "Age: $ageValue"
+                    } else {
+                        Log.d("Profilemanager", "No such document")
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("Profilemanager", "Error getting document", exception)
+                }
+        } else {
+            Log.e("Profilemanager", "userId is empty.")
+        }
+    }
+
+    private fun clearUserData() {
+        val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+        sharedPreferences.edit {
+            remove("userId")
+            remove("isLoggedIn")
+        }
+    }
+
 }
+
 

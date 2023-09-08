@@ -44,8 +44,15 @@ class MainActivity : AppCompatActivity() {
                         val userPrefsEditor = sharedPreferences.edit()
                         userPrefsEditor.putBoolean("isLoggedIn", true)
                         userPrefsEditor.putString("userId", documentId)
+                        userPrefsEditor.putBoolean("autoLogin", true)
                         userPrefsEditor.apply()
                     }
+
+                    val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
+                    val userPrefsEditor = sharedPreferences.edit()
+                    userPrefsEditor.putBoolean("isLoggedIn", true)
+                    userPrefsEditor.putString("userId", documentId)
+                    userPrefsEditor.apply()
 
                     val profileIntent = Intent(this, HomeActivity::class.java)
                     startActivity(profileIntent)
