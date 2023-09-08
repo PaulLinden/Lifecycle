@@ -1,7 +1,11 @@
 package com.three.lifecycle
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,18 +17,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class SettingsFragment : Fragment() {
 
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var rootView: View
     private var firestore: FirebaseFirestore? = null
-
-    private var newAge: String = ""
 
     fun setFirestoreReference(db: FirebaseFirestore) {
         firestore = db
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         rootView = inflater.inflate(R.layout.fragment_settings, container, false)
         return rootView
@@ -33,22 +35,16 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
-        rootView.findViewById<EditText>(R.id.inputNewEmailAdress).setText(sharedPreferences.getString("email", ""))
-        rootView.findViewById<EditText>(R.id.inputNewPassword).setText(sharedPreferences.getString("password", ""))
-        rootView.findViewById<EditText>(R.id.inputNewTitle).setText(sharedPreferences.getString("title", ""))
-        rootView.findViewById<EditText>(R.id.inputNewAdress).setText(sharedPreferences.getString("address", ""))
-        rootView.findViewById<EditText>(R.id.inputNewAge).setText(sharedPreferences.getString("age", ""))
-
+        val inputNewEmailAdress = rootView.findViewById<EditText>(R.id.inputNewEmailAdress)
+        val inputNewPassword = rootView.findViewById<EditText>(R.id.inputNewPassword)
+        val inputNewTitle = rootView.findViewById<EditText>(R.id.inputNewTitle)
+        val inputNewAdress = rootView.findViewById<EditText>(R.id.inputNewAdress)
+        val inputNewAge = rootView.findViewById<EditText>(R.id.inputNewAge)
         val submitButton = rootView.findViewById<Button>(R.id.submitButton)
-        submitButton.setOnClickListener {
 
-            val inputNewEmailAdress = rootView.findViewById<EditText>(R.id.inputNewEmailAdress)
-            val inputNewPassword = rootView.findViewById<EditText>(R.id.inputNewPassword)
-            val inputNewTitle = rootView.findViewById<EditText>(R.id.inputNewTitle)
-            val inputNewAdress = rootView.findViewById<EditText>(R.id.inputNewAdress)
-            val inputNewAge = rootView.findViewById<EditText>(R.id.inputNewAge)
+        submitButton.setOnClickListener {
 
             val updateUser = User(
                 email = inputNewEmailAdress.text.toString(),
@@ -57,27 +53,15 @@ class SettingsFragment : Fragment() {
                 address = inputNewAdress.text.toString(),
                 age = inputNewAge.text.toString().toIntOrNull() ?: 0
             )
-
             val currentUser = arguments?.getString("email")
             if (currentUser != null) {
-                editCredentials(updateUser, currentUser)
+                updateUserInDatabase(updateUser, currentUser)
             }
-
-            val editor = sharedPreferences.edit()
-
-            editor.putString("email", inputNewEmailAdress.text.toString())
-            editor.putString("password", inputNewPassword.text.toString())
-            editor.putString("title", inputNewTitle.text.toString())
-            editor.putString("address", inputNewAdress.text.toString())
-            editor.putString("age", inputNewAge.text.toString())
-
-            editor.apply()
         }
     }
-
-    fun editCredentials(user: User, currentUser: String) {
-        firestore?.collection("users")
-            ?.whereEqualTo("email", currentUser)?.get()?.addOnSuccessListener { result ->
+    private fun updateUserInDatabase(user: User, currentUser: String) {
+        firestore?.collection("users")?.whereEqualTo("email", currentUser)?.get()
+            ?.addOnSuccessListener { result ->
                 for (document in result) {
                     val docRef = firestore?.collection("users")?.document(document.id)
 
@@ -89,8 +73,7 @@ class SettingsFragment : Fragment() {
                         "age" to user.age
                     )
 
-                    docRef?.update(updates)
-                        ?.addOnSuccessListener {
+                    docRef?.update(updates)?.addOnSuccessListener {
                             Log.d("validateLogin", "Succeeded updating document.")
                         }?.addOnFailureListener { exception ->
                             Log.d("validateLogin", "Error updating document.", exception)
@@ -100,8 +83,5 @@ class SettingsFragment : Fragment() {
             }?.addOnFailureListener { exception ->
                 Log.d("validateLogin", "Error querying database.", exception)
             }
-
     }
 }
-
-

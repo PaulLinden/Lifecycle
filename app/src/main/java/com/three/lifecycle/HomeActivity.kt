@@ -84,6 +84,15 @@ class HomeActivity : AppCompatActivity() {
 
     private fun logoutUser(email: String) {
 
+        val sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE)
+        val userPrefsEditor = sharedPreferences.edit()
+
+        userPrefsEditor.remove("email")
+        userPrefsEditor.remove("password")
+        userPrefsEditor.remove("isLoggedIn")
+
+        userPrefsEditor.apply()
+
         db.collection("users").whereEqualTo("email", email).get().addOnSuccessListener { result ->
                 for (document in result) {
 

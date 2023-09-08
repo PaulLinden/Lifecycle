@@ -58,7 +58,6 @@ class ProfileFragment : Fragment() {
                         ageValue = ageNumber.toString()
                         titleValue = titleString
                     }
-
                 }
                 val agePlaceholder = getString(R.string.age_placeholder)
                 val titlePlaceholder = getString(R.string.title_placeholder)
