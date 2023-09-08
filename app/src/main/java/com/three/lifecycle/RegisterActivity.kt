@@ -93,6 +93,13 @@ class RegisterActivity : AppCompatActivity() {
             val mainIntent = Intent(this, MainActivity::class.java)
             startActivity(mainIntent)
         }
+
+        val cancelButton = findViewById<Button>(R.id.cancel_button)
+        cancelButton.setOnClickListener {
+
+            val mainIntent = Intent(this, MainActivity::class.java)
+            startActivity(mainIntent)
+        }
     }
 
     private fun addUserToDatabase(user: User) {

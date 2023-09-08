@@ -19,7 +19,6 @@ class ProfileFragment : Fragment() {
     private var firestore: FirebaseFirestore? = null
     private lateinit var userId: String
 
-    // Set Firestore reference for this fragment
     fun setFirestoreReference(db: FirebaseFirestore) {
         firestore = db
     }
@@ -35,7 +34,6 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Get user ID from arguments and retrieve user information
         userId = arguments?.getString("userId").toString()
         getUserSpec(userId)
     }
