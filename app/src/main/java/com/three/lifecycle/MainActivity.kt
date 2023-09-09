@@ -10,9 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private val firestoreSingleton = FirestoreSingleton()
-    private val db = firestoreSingleton.getInstance(this)
-
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var autoLoginCheckBox: CheckBox
@@ -24,19 +21,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize UI elements
+        val navigationManager = NavigationManager(intent, this)
+
         emailEditText = findViewById(R.id.inputEmailAddress)
         passwordEditText = findViewById(R.id.inputPassword)
         autoLoginCheckBox = findViewById(R.id.autoLoginCheckBox)
 
-        // Set up click listener for login button
+
         val loginButton = findViewById<Button>(R.id.loginButton)
         loginButton.setOnClickListener {
 
             email = emailEditText.text.toString()
             password = passwordEditText.text.toString()
 
-            validateLogin(email, password) { (isValid, documentId) ->
+            val databaseManager = DatabaseManager(this)
+            databaseManager.validateLogin(email, password) { (isValid, documentId) ->
                 if (isValid) {
 
                     if (autoLoginCheckBox.isChecked) {
@@ -54,8 +53,7 @@ class MainActivity : AppCompatActivity() {
                     userPrefsEditor.putString("userId", documentId)
                     userPrefsEditor.apply()
 
-                    val profileIntent = Intent(this, HomeActivity::class.java)
-                    startActivity(profileIntent)
+                    navigationManager.navigateToProfile()
 
                 } else {
                     Log.d("Validation_Error","Validation Error")
@@ -63,12 +61,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Set up click listener for register button
         val registerButton = findViewById<Button>(R.id.submitButton)
         registerButton.setOnClickListener {
-
-            val registerIntent = Intent(this, RegisterActivity::class.java)
-            startActivity(registerIntent)
+            navigationManager.navigateToRegister()
         }
     }
 
@@ -102,29 +97,5 @@ class MainActivity : AppCompatActivity() {
         userPrefsEditor.putBoolean("autoLogin", autoLoginCheckBox.isChecked)
         userPrefsEditor.apply()
     }
-    private fun validateLogin(email: String, password: String, callback: (Pair<Boolean, String?>) -> Unit) {
-        db.collection("users").whereEqualTo("email", email).get().addOnSuccessListener { result ->
 
-            for (document in result) {
-                val verifyPassword = document.getString("password")
-                if (password == verifyPassword) {
-
-                    db.collection("users").document(document.id).update("isLoggedIn", true)
-                        .addOnSuccessListener {
-                            // Pass both the result and the document ID
-                            callback(Pair(true, document.id))
-                        }.addOnFailureListener { exception ->
-                            Log.w("validateLogin", "Error updating document.", exception)
-                            callback(Pair(false, null))
-                        }
-                    return@addOnSuccessListener
-                }
-            }
-            callback(Pair(false, null))
-
-        }.addOnFailureListener { exception ->
-            Log.w("validateLogin", "Error querying database.", exception)
-            callback(Pair(false, null))
-        }
-    }
 }

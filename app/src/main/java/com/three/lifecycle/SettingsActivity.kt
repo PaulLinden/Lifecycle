@@ -9,122 +9,108 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import com.google.firebase.firestore.FieldPath
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var userId: String
-    private val firestoreSingleton = FirestoreSingleton()
-    private val db = firestoreSingleton.getInstance(this)
-
-    private var saveEmailInput:String = ""
-    private var savePasswordInput:String = ""
-    private var saveAgeInput:String = ""
+    private var saveEmailInput: String = ""
+    private var savePasswordInput: String = ""
+    private var saveAgeInput: String = ""
     private var savedGenderId: Int? = null
-    private var saveCheckBoxState:Boolean = false
+    private var saveCheckBoxState: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+        setupUI(savedInstanceState)
+        setupListeners()
+    }
+
+    private fun setupUI(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
-            savedInstanceState.getString("email_value")
-            savedInstanceState.getString("password_value")
-            savedInstanceState.getBoolean("checkBox_value")
-            savedInstanceState.getString("password_value")
-            savedInstanceState.getBoolean("gender_value")
-            savedInstanceState.getString("age_value")
+            saveEmailInput = savedInstanceState.getString("email_value").toString()
+            savePasswordInput = savedInstanceState.getString("password_value").toString()
+            saveAgeInput = savedInstanceState.getString("age_value").toString()
+            saveCheckBoxState = savedInstanceState.getBoolean("auto_login_value")
+            savedGenderId = savedInstanceState.getInt("gender_value", -1)
         }
 
-        val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
-        userId = sharedPreferences.getString("userId", "").toString()
+        val emailEditText = findViewById<EditText>(R.id.inputNewEmailAdress)
+        val passwordEditText = findViewById<EditText>(R.id.inputNewPassword)
+        val ageEditText = findViewById<EditText>(R.id.inputNewAge)
 
-        val updateEmail = findViewById<EditText>(R.id.inputNewEmailAdress)
-        val updatePassword = findViewById<EditText>(R.id.inputNewPassword)
-        val updateDrivingLicense = findViewById<CheckBox>(R.id.checkBoxDrivingLicense)
-        val updateGroupGender = findViewById<RadioGroup>(R.id.gender)
-        val updateAge = findViewById<EditText>(R.id.inputNewAge)
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-        val uiList = mutableListOf(updateEmail, updatePassword, updateAge)
-        uiList.forEach { ui ->
-            ui.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                    when (ui) {
-                        updateEmail -> saveEmailInput = p0.toString()
-                        updatePassword -> savePasswordInput = p0.toString()
-                        updateAge -> saveAgeInput = p0.toString()
-                        else -> {}
-                    }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val view = currentFocus as? EditText
+
+                when (view?.tag) {
+                    "email" -> saveEmailInput = s.toString()
+                    "password" -> savePasswordInput = s.toString()
+                    "age" -> saveAgeInput = s.toString()
                 }
+            }
 
-                override fun afterTextChanged(p0: Editable?) {}
-            })
+            override fun afterTextChanged(s: Editable?) {}
         }
 
+        emailEditText.addTextChangedListener(textWatcher)
+        emailEditText.tag = "email"
+
+        passwordEditText.addTextChangedListener(textWatcher)
+        passwordEditText.tag = "password"
+
+        ageEditText.addTextChangedListener(textWatcher)
+        ageEditText.tag = "age"
+
+        val updateDrivingLicense = findViewById<CheckBox>(R.id.checkBoxDrivingLicense)
         updateDrivingLicense.setOnCheckedChangeListener { _, isChecked ->
             saveCheckBoxState = isChecked
         }
 
+        val updateGroupGender = findViewById<RadioGroup>(R.id.gender)
         updateGroupGender.setOnCheckedChangeListener { group, checkedId ->
-            savedGenderId = checkedId
-        }
-
-        val submitButton = findViewById<Button>(R.id.submitButton)
-        submitButton.setOnClickListener {
-
-            val updateUser = User(
-
-                email = updateEmail?.text.toString(),
-                password = updatePassword.text.toString(),
-                drivingLicense = updateDrivingLicense.isChecked,
-                gender = when (updateGroupGender.checkedRadioButtonId) {
-                    R.id.radioMale -> "Male"
-                    R.id.radioFemale -> "Female"
-                    else -> "Other"
-                },
-                age = updateAge.text.toString().toIntOrNull() ?: 0
-            )
-
-            updateUserInDatabase(updateUser, userId)
-
-            val homeActivity = Intent(this, HomeActivity::class.java)
-            startActivity(homeActivity)
-        }
-
-        val cancelButton = findViewById<Button>(R.id.cancel_button_2)
-        cancelButton.setOnClickListener{
-            val homeActivity = Intent(this, HomeActivity::class.java)
-            startActivity(homeActivity)
+            savedGenderId = when (checkedId) {
+                R.id.radioMale -> 0
+                R.id.radioFemale -> 1
+                else -> null
+            }
         }
     }
 
-    private fun updateUserInDatabase(user: User, userId: String) {
+    private fun setupListeners() {
+        val databaseManager = DatabaseManager(this)
 
-        db.collection("users").whereEqualTo(FieldPath.documentId(), userId).get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val docRef = db.collection("users").document(document.id)
+        val homeButton = findViewById<Button>(R.id.homeButton)
+        val logOutButton = findViewById<Button>(R.id.logoutButton)
+        val submitButton = findViewById<Button>(R.id.submitButton)
+        val cancelButton = findViewById<Button>(R.id.cancel_button_2)
+        val navigationManager = NavigationManager(intent, this)
 
-                    val updates = mapOf(
-                        "email" to user.email,
-                        "password" to user.password,
-                        "drivingLicense" to user.drivingLicense,
-                        "gender" to user.gender,
-                        "age" to user.age
-                    )
+        submitButton.setOnClickListener {
+            val user = User(
+                saveEmailInput,
+                savePasswordInput,
+                saveCheckBoxState,
+                if (savedGenderId == 0) "Male" else "Female",
+                saveAgeInput.toInt()
+            )
 
-                    docRef.update(updates).addOnSuccessListener {
-                        Log.d("validateLogin", "Succeeded updating document.")
-                    }.addOnFailureListener { exception ->
-                        Log.d("validateLogin", "Error updating document.", exception)
-                    }
-                    break
-                }
-            }.addOnFailureListener { exception ->
-                Log.d("validateLogin", "Error querying database.", exception)
-            }
+            databaseManager.updateUserInDatabase(user)
+            Toast.makeText(this,"Updating", Toast.LENGTH_LONG).show()
+        }
+        cancelButton.setOnClickListener { navigationManager.navigateToProfile() }
+        homeButton.setOnClickListener { navigationManager.navigateToProfile() }
+        logOutButton.setOnClickListener {
+            databaseManager.logoutUser()
+            navigationManager.navigateToMain()
+            finish()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -146,6 +132,5 @@ class SettingsActivity : AppCompatActivity() {
         saveCheckBoxState = savedInstanceState.getBoolean("auto_login_value")
         savedGenderId = savedInstanceState.getInt("gender_value", -1)
     }
-
-
 }
+

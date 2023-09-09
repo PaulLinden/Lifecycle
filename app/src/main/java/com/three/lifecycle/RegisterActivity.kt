@@ -1,32 +1,28 @@
 package com.three.lifecycle
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 
 class RegisterActivity : AppCompatActivity() {
 
-    private val firestoreSingleton = FirestoreSingleton()
-    private val db = firestoreSingleton.getInstance(this)
-
-    private var saveEmailInput:String = ""
-    private var savePasswordInput:String = ""
-    private var saveAgeInput:String = ""
+    private var saveEmailInput: String = ""
+    private var savePasswordInput: String = ""
+    private var saveAgeInput: String = ""
     private var savedGenderId: Int? = null
-    private var saveCheckBoxState:Boolean = false
+    private var saveCheckBoxState: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        val navigationManager = NavigationManager(intent, this)
 
         if (savedInstanceState != null) {
             savedInstanceState.getString("email_value")
@@ -52,15 +48,19 @@ class RegisterActivity : AppCompatActivity() {
                         inputNewEmailAddress -> {
                             saveEmailInput = p0.toString()
                         }
+
                         inputNewPassword -> {
                             savePasswordInput = p0.toString()
                         }
+
                         inputNewAge -> {
                             saveAgeInput = p0.toString()
                         }
+
                         else -> {}
+                    }
                 }
-                }
+
                 override fun afterTextChanged(p0: Editable?) {}
             })
         }
@@ -88,29 +88,17 @@ class RegisterActivity : AppCompatActivity() {
                 age = inputNewAge.text.toString().toIntOrNull() ?: 0
             )
 
-            addUserToDatabase(newUser)
+            val databaseManager = DatabaseManager(this)
+            databaseManager.addUserToDatabase(newUser)
 
-            val mainIntent = Intent(this, MainActivity::class.java)
-            startActivity(mainIntent)
+            navigationManager.navigateToMain()
         }
 
         val cancelButton = findViewById<Button>(R.id.cancel_button)
         cancelButton.setOnClickListener {
 
-            val mainIntent = Intent(this, MainActivity::class.java)
-            startActivity(mainIntent)
+            navigationManager.navigateToMain()
         }
-    }
-
-    private fun addUserToDatabase(user: User) {
-        db.collection("users")
-            .add(user)
-            .addOnSuccessListener { documentReference ->
-                Log.d("validateLogin", "DocumentSnapshot added with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.d("validateLogin", "Error adding document", e)
-            }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
