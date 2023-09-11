@@ -1,12 +1,11 @@
-package com.three.lifecycle
-import android.content.Context
+package com.three.lifecycle.Data
 import com.google.firebase.firestore.FirebaseFirestore
 
 class FirestoreSingleton {
 
     private var firestore: FirebaseFirestore? = null
 
-    fun getInstance(appContext: Context): FirebaseFirestore {
+    fun getInstance(): FirebaseFirestore {
         if (firestore == null) {
             firestore = FirebaseFirestore.getInstance()
         }

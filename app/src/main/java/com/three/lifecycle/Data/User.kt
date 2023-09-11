@@ -1,7 +1,4 @@
-package com.three.lifecycle
-
-import android.widget.CheckBox
-import android.widget.RadioGroup
+package com.three.lifecycle.Data
 
 data class User(
         val email: String,

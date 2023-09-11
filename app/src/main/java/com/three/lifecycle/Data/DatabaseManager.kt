@@ -1,4 +1,4 @@
-package com.three.lifecycle
+package com.three.lifecycle.Data
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
@@ -10,7 +10,7 @@ import com.google.firebase.firestore.FieldPath
 class DatabaseManager(private  val context: Context) {
 
     private val firestoreSingleton = FirestoreSingleton()
-    private val db = firestoreSingleton.getInstance(context)
+    private val db = firestoreSingleton.getInstance()
     private val sharedPreferences = context.getSharedPreferences("UserPref", MODE_PRIVATE)
     private val userId = sharedPreferences.getString("userId", "").toString()
 

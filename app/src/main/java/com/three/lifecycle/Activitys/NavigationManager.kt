@@ -1,4 +1,4 @@
-package com.three.lifecycle
+package com.three.lifecycle.Activitys
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity

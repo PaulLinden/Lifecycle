@@ -1,4 +1,4 @@
-package com.three.lifecycle
+package com.three.lifecycle.Activitys
 
 import android.os.Bundle
 import android.text.Editable
@@ -8,6 +8,9 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
+import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.R
+import com.three.lifecycle.Data.User
 
 
 class RegisterActivity : AppCompatActivity() {

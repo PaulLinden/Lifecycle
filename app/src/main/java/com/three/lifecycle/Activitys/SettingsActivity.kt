@@ -1,18 +1,17 @@
-package com.three.lifecycle
+package com.three.lifecycle.Activitys
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
-import com.google.firebase.firestore.FieldPath
+import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.R
+import com.three.lifecycle.Data.User
 
 class SettingsActivity : AppCompatActivity() {
 

@@ -1,4 +1,4 @@
-package com.three.lifecycle
+package com.three.lifecycle.Activitys
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.R
 
 class HomeActivity : AppCompatActivity() {
 
@@ -93,10 +95,6 @@ class HomeActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun updateTextViewsFromPreferences() {
         val sharedPreferences = getSharedPreferences("UserSpecPref", MODE_PRIVATE)
-        Log.d("Debug", "nameValue: ${sharedPreferences.getString("nameValue", "")}")
-        Log.d("Debug", "ageValue: ${sharedPreferences.getString("ageValue", "")}")
-        Log.d("Debug", "genderValue: ${sharedPreferences.getString("genderValue", "")}")
-        Log.d("Debug", "driverValue: ${sharedPreferences.getString("driverValue", "")}")
 
         val ageTextView = findViewById<TextView>(R.id.profilAgeTextView)
         val nameTextView = findViewById<TextView>(R.id.profileNameTextView)

@@ -1,4 +1,4 @@
-package com.three.lifecycle
+package com.three.lifecycle.Activitys
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.R
 
 class MainActivity : AppCompatActivity() {
 
