@@ -1,16 +1,12 @@
 package com.three.lifecycle
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
-import com.google.firebase.firestore.FieldPath
-import kotlin.properties.Delegates
 
 class HomeActivity : AppCompatActivity() {
 
@@ -19,8 +15,10 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-
+        if (savedInstanceState == null){
         setUserSpec()
+        }
+
         setupListeners()
     }
 
@@ -50,8 +48,6 @@ class HomeActivity : AppCompatActivity() {
 
         val sharedPreferences = getSharedPreferences("UserPref", MODE_PRIVATE)
         val autoLogin = sharedPreferences.getBoolean("autoLogin", false)
-
-        Log.d("ProfileCHECKER", autoLogin.toString())
 
         if (!autoLogin) {
             val databaseManager = DatabaseManager(this)
@@ -109,7 +105,7 @@ class HomeActivity : AppCompatActivity() {
 
         val nameValue = sharedPreferences.getString("nameValue", "")
         val ageValue = sharedPreferences.getString("ageValue", "")
-        val genderValue = sharedPreferences.getString("genderValue", "") ?: "N/A"
+        val genderValue = sharedPreferences.getString("genderValue", "")
         val driverValue = sharedPreferences.getString("driverValue", "")
 
         if (nameValue != null && ageValue != null && genderValue != null && driverValue != null) {
