@@ -1,4 +1,4 @@
-package com.three.lifecycle.Activitys
+package com.three.lifecycle.activitys
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -7,7 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
-import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.data.DatabaseManager
 import com.three.lifecycle.R
 
 class HomeActivity : AppCompatActivity() {

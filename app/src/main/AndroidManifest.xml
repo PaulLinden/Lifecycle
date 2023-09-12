@@ -12,16 +12,16 @@
         android:theme="@style/Theme.Lifecycle"
         tools:targetApi="31">
         <activity
-            android:name=".Activitys.RegisterActivity"
+            android:name=".activitys.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".Activitys.SettingsActivity"
+            android:name=".activitys.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".Activitys.HomeActivity"
+            android:name=".activitys.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".Activitys.MainActivity"
+            android:name=".activitys.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package com.three.lifecycle.Data
+package com.three.lifecycle.data
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE

@@ -1,4 +1,4 @@
-package com.three.lifecycle.Data
+package com.three.lifecycle.data
 import com.google.firebase.firestore.FirebaseFirestore
 
 class FirestoreSingleton {

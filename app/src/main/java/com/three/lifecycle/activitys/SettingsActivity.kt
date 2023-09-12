@@ -1,4 +1,4 @@
-package com.three.lifecycle.Activitys
+package com.three.lifecycle.activitys
 
 import android.os.Bundle
 import android.text.Editable
@@ -9,9 +9,9 @@ import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.three.lifecycle.Data.DatabaseManager
+import com.three.lifecycle.data.DatabaseManager
 import com.three.lifecycle.R
-import com.three.lifecycle.Data.User
+import com.three.lifecycle.data.User
 
 class SettingsActivity : AppCompatActivity() {
 

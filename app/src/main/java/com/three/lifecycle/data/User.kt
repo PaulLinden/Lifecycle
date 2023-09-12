@@ -1,4 +1,4 @@
-package com.three.lifecycle.Data
+package com.three.lifecycle.data
 
 data class User(
         val email: String,
